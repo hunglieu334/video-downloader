@@ -1,0 +1,44 @@
+<!-- Thêm vào phần head của trang HTML -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Downloader</title>
+    <link rel="stylesheet" href="/public/css/main.css">
+</head>
+<body>
+    {% include 'partials/header.html' %}
+    
+    <div class="container">
+        <div class="main-form">
+            <h1>Video Downloader</h1>
+            <p>Tải video từ YouTube, Facebook và TikTok</p>
+            
+            <div class="url-form">
+                <input type="text" id="video-url" placeholder="Nhập URL video..." required>
+                
+                <select id="platform-select">
+                    <option value="auto">Tự động nhận diện</option>
+                    <option value="youtube">YouTube</option>
+                    <option value="facebook">Facebook</option>
+                    <option value="tiktok">TikTok</option>
+                </select>
+                
+                <button id="preview-btn" type="button">Xem trước</button>
+            </div>
+            
+            <div class="error-message" id="error-message" style="display: none; color: red;"></div>
+        </div>
+        
+        <div class="video-preview" id="video-preview" style="display: none;">
+            <!-- Nội dung sẽ được thêm bằng JavaScript -->
+        </div>
+    </div>
+    
+    {% include 'partials/footer.html' %}
+    
+    <script src="/public/js/main.js"></script>
+</body>
+</html>

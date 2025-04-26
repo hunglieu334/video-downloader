@@ -1,0 +1,3 @@
+pip install flask flask-login flask-sqlalchemy yt-dlp bcrypt
+pip install -r requirements.txt 
+choco install ffmpeg

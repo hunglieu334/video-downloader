@@ -1,0 +1,16 @@
+<header class="main-header">
+    <div class="logo">
+        <a href="/">Video Downloader</a>
+    </div>
+    <nav>
+        <ul>
+            <li><a href="/">Home</a></li>
+            {% if user.is_authenticated %}
+                <li><a href="/logout">Logout ({{ user.username }})</a></li>
+            {% else %}
+                <li><a href="/login">Login</a></li>
+                <li><a href="/register">Register</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+</header>

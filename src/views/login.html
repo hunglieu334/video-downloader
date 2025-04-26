@@ -1,0 +1,59 @@
+\video-downloader\src\views\login.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Video Downloader</title>
+    <link rel="stylesheet" href="/public/css/main.css">
+</head>
+<body class="auth-page">
+    {% include 'partials/header.html' %}
+    
+    <main class="container">
+        <div class="auth-container">
+            <h1>Login</h1>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert {% if category == 'danger' %}alert-error{% else %}alert-{{ category }}{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <form action="/login" method="post" class="auth-form">
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="checkbox-container">
+                        <input type="checkbox" name="remember">
+                        <span class="checkmark"></span>
+                        Remember me
+                    </label>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Login</button>
+                </div>
+                
+                <p class="auth-links">
+                    Don't have an account? <a href="/register">Register</a>
+                </p>
+            </form>
+        </div>
+    </main>
+    
+    {% include 'partials/footer.html' %}
+</body>
+</html>
