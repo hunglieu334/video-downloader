@@ -1,3 +1,11 @@
 pip install flask flask-login flask-sqlalchemy yt-dlp bcrypt
 pip install -r requirements.txt 
-choco install ffmpeg
+python -m pip install flask-wtf
+python -m pip install -U yt-dlp
+
+Mở PowerShell với quyền Administrator (nhấp chuột phải vào PowerShell và chọn "Run as administrator")
+
+Chạy lệnh sau để cài đặt Chocolatey:
+Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+
+choco install ffmpeg -y

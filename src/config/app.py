@@ -1,33 +1,29 @@
 import os
+import secrets
 
 class Config:
-    # Xác định thư mục gốc của dự án
+    # Base configuration
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    INSTANCE_PATH = os.path.join(BASE_DIR, 'instance')
     
-    # Tạo đường dẫn tuyệt đối đến thư mục instance
-    INSTANCE_DIR = os.path.join(BASE_DIR, 'instance')
+    # Create instance directory if it doesn't exist
+    os.makedirs(INSTANCE_PATH, exist_ok=True)
     
-    # Tạo thư mục instance nếu nó chưa tồn tại
-    os.makedirs(INSTANCE_DIR, exist_ok=True)
-    
-    # Cấu hình database với đường dẫn tuyệt đối
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///D:/project/video-downloader/instance/users.db'
+    # Database configuration
+    DB_NAME = 'app.db'
+    DB_PATH = os.path.join(INSTANCE_PATH, DB_NAME)
+    SQLALCHEMY_DATABASE_URI = f'sqlite:///{DB_PATH}'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
-    # Application configuration
-    SECRET_KEY = 'your-secret-key-change-in-production'
+    # Security settings
+    SECRET_KEY = secrets.token_hex(32)
+    WTF_CSRF_ENABLED = True
+    WTF_CSRF_SECRET_KEY = secrets.token_hex(32)
     
-    # File paths
-    DOWNLOAD_FOLDER = os.path.join(BASE_DIR, 'downloads')
-    CACHE_FOLDER = os.path.join(BASE_DIR, 'cache')
-    COOKIE_FILE = os.path.join(BASE_DIR, 'src', 'public', 'cookies.txt')
-    
-    # Cache settings
-    CACHE_EXPIRY = 7 * 24 * 60 * 60  # 7 days in seconds
-    
-    # Tạo các thư mục cần thiết khác
-    os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
-    os.makedirs(CACHE_FOLDER, exist_ok=True)
-    
-    # Debug settings
-    DEBUG = True
+    # Session configuration
+    SESSION_TYPE = 'filesystem'
+    SESSION_FILE_DIR = os.path.join(INSTANCE_PATH, 'sessions')
+    SESSION_COOKIE_NAME = 'video_downloader_session'
+    SESSION_COOKIE_SECURE = False  # Set to True in production
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'Lax'

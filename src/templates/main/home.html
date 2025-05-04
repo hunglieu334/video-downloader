@@ -1,0 +1,187 @@
+{% extends "base.html" %} {% block content %}
+<div class="container">
+    <h1 class="text-center mb-4">Video Downloader</h1>
+
+    {% if current_user.is_authenticated %}
+    <div class="form-container">
+        <form id="videoForm">
+            <div class="form-group mb-3">
+                <label for="url">URL Video</label>
+                <input type="url" class="form-control" id="url" name="url" placeholder="Nhập URL video" required>
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="quality">Chất lượng</label>
+                <select class="form-control" id="quality" name="quality" disabled>
+                    <option value="">Chọn chất lượng</option>
+                </select>
+            </div>
+
+            <button type="button" class="btn btn-primary w-100" id="downloadBtn" disabled>
+                Tải xuống
+            </button>
+        </form>
+    </div>
+
+    <div id="preview" class="mt-4"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlInput = document.getElementById('url');
+            const qualitySelect = document.getElementById('quality');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const previewDiv = document.getElementById('preview');
+            const form = document.getElementById('videoForm');
+
+            urlInput.addEventListener('input', debounce(handleUrlChange, 500));
+
+            async function handleUrlChange() {
+                const url = urlInput.value.trim();
+                if (!url) {
+                    clearPreview();
+                    return;
+                }
+
+                showLoading();
+
+                try {
+                    const response = await fetch('/api/preview', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': "{{ csrf_token() }}"
+                        },
+                        body: JSON.stringify({
+                            url
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Không thể lấy thông tin video');
+                    }
+
+                    const data = await response.json();
+                    updatePreview(data);
+                    updateQualityOptions(data.formats);
+                    downloadBtn.disabled = false;
+                } catch (error) {
+                    showError(error.message);
+                }
+            }
+
+            function updatePreview(data) {
+                previewDiv.innerHTML = `
+                <div class="card">
+                    <img src="${data.thumbnail}" class="card-img-top" alt="Video thumbnail">
+                    <div class="card-body">
+                        <h5 class="card-title">${data.title}</h5>
+                        <p class="card-text">Thời lượng: ${formatDuration(data.duration)}</p>
+                    </div>
+                </div>
+            `;
+            }
+
+            function showLoading() {
+                previewDiv.innerHTML = `
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Đang tải thông tin video...</p>
+                </div>
+            `;
+            }
+
+            function clearPreview() {
+                previewDiv.innerHTML = '';
+                qualitySelect.innerHTML = '<option value="">Chọn chất lượng</option>';
+                qualitySelect.disabled = true;
+                downloadBtn.disabled = true;
+            }
+
+            function showError(message) {
+                previewDiv.innerHTML = `
+                <div class="alert alert-danger">
+                    ${message}
+                </div>
+            `;
+                clearPreview();
+            }
+
+            function formatDuration(seconds) {
+                return new Date(seconds * 1000).toISOString().substr(11, 8);
+            }
+
+            function debounce(func, wait) {
+                let timeout;
+                return function(...args) {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(this, args), wait);
+                };
+            }
+
+            function updateQualityOptions(formats) {
+                qualitySelect.innerHTML = '<option value="">Chọn chất lượng</option>';
+                formats.forEach(format => {
+                    const option = document.createElement('option');
+                    option.value = format.format_id;
+                    option.textContent = `${format.resolution} - ${format.ext}`;
+                    qualitySelect.appendChild(option);
+                });
+                qualitySelect.disabled = false;
+            }
+
+            downloadBtn.addEventListener('click', async() => {
+                const url = urlInput.value.trim();
+                const format_id = qualitySelect.value;
+
+                if (!url) {
+                    showError('Vui lòng nhập URL video');
+                    return;
+                }
+
+                downloadBtn.disabled = true;
+                downloadBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang tải xuống...';
+
+                try {
+                    const response = await fetch('/api/download', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': "{{ csrf_token() }}"
+                        },
+                        body: JSON.stringify({
+                            url,
+                            format_id
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(data.error || 'Lỗi khi tải video');
+                    }
+
+                    showSuccess(data.message);
+
+                } catch (error) {
+                    showError(error.message);
+                } finally {
+                    downloadBtn.disabled = false;
+                    downloadBtn.innerHTML = 'Tải xuống';
+                }
+            });
+
+            function showSuccess(message) {
+                previewDiv.innerHTML += `
+                    <div class="alert alert-success mt-3">
+                        ${message}
+                    </div>
+                `;
+            }
+        });
+    </script>
+    {% endif %}
+</div>
+{% endblock %}

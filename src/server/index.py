@@ -1,54 +1,40 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, current_user
+from flask_login import LoginManager
+from flask_wtf.csrf import CSRFProtect
 import os
 
 from src.config.app import Config
-from src.server.models import db, User, init_db
+from src.server.extensions import db
+from src.server.models import User
 
 def create_app():
-    # Đảm bảo thư mục instance tồn tại
-    os.makedirs(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'instance'), exist_ok=True)
-    
-    app = Flask(__name__, 
-                template_folder=os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'src', 'views'),
-                static_folder=os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'src', 'public'),
-                static_url_path='/public')  # Thêm dòng này
+    app = Flask(__name__,
+                template_folder=os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'src', 'templates'))
     app.config.from_object(Config)
     
-    # Initialize database
+    # Initialize extensions
     db.init_app(app)
+    csrf = CSRFProtect()
+    csrf.init_app(app)
     
     # Setup login manager
     login_manager = LoginManager()
+    login_manager.login_view = 'auth.login'
     login_manager.init_app(app)
-    login_manager.login_view = 'login'
     
     @login_manager.user_loader
-    def load_user(user_id):
-        return User.query.get(int(user_id))
+    def load_user(id):
+        return User.query.get(int(id))
     
-    # Thêm context processor để truyền user vào tất cả các templates
-    @app.context_processor
-    def inject_user():
-        return dict(user=current_user)
+    # Register blueprints
+    from src.server.routes.auth import auth
+    from src.server.routes.main import main
+    from src.server.routes.api import api
     
-    # Register routes
-    from src.server.routes.pages import register_page_routes
-    from src.server.routes.api import register_api_routes
-    
-    register_page_routes(app)
-    register_api_routes(app)
-    
-    # Create database tables if they don't exist
-    with app.app_context():
-        # Xóa tất cả các bảng và tạo lại
-        db.drop_all()
-        init_db()
+    app.register_blueprint(auth)
+    app.register_blueprint(main)
+    app.register_blueprint(api)
     
     return app
 
 app = create_app()
-
-if __name__ == '__main__':
-    app.run(debug=Config.DEBUG)
